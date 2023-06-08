@@ -1,0 +1,1 @@
+make sure no results folder has a .Ds_Store file

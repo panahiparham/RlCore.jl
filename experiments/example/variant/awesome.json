@@ -1,0 +1,9 @@
+{
+    "problem": "easy-main",
+    "agent": "random",
+    "total_steps": 100000,
+    "metaparameters": {
+        "alpha": [0.01],
+        "gamma": [0.99, 0.999]
+    }
+}
