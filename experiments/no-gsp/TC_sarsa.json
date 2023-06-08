@@ -1,0 +1,13 @@
+{
+    "problem": "main",
+    "agent": "TCSarsaLambda",
+    "total_steps": 1000000,
+    "metaparameters": {
+        "alpha": [0.1, 0.05, 0.01],
+        "gamma": 0.99,
+        "epsilon": 0.05,
+        "lambda": 0.9,
+        "tiles": [4, 8],
+        "tilings": [4, 8, 16]
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "environment": "pinball_easy",
+    "initiation_radius": 0.4,
+    "goal_location": [0.25, 0.45],
+    "discount_factor": 0.99,
+    "is_main_goal": false
+}

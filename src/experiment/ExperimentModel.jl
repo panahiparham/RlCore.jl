@@ -32,6 +32,7 @@ end
 function load_experiment(path::String)
     d = JSON.parsefile(path)
     d["exp_path"] = path # Get the name of experiments
+
     exp = ExperimentModel(d, path)
 
     return exp

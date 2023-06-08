@@ -37,20 +37,14 @@ function main(exp_file, indices)
             ),
             idx = idx
         )
-        run = get_run(exp, idx)
+        run = get_run(exp, idx) # TODO buggggg run is 1 larger than it should be
         perm = get_permutation(exp, idx)
-
-        # setup seed for reproducibility
-        Random.seed!(run)
-
-        # println("Idx:", idx, " Run: ", run, " Perm: ", perm)
-
 
 
         # setup experiment
         problem = get_problem(exp.problem) # this needs to be modified with idx for hyper selection, why?
         env = problem.environment
-        agent = get_agent(exp.agent, length(env.actions))
+        agent = get_agent(exp.agent, env.observations, env.actions, perm, run)
 
         glue = Glue(env, agent)
 

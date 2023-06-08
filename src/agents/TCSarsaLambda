@@ -1,0 +1,119 @@
+using RLGlue
+
+include("../representations/tc.jl")
+
+
+
+mutable struct TCSarsaLambda <: RLGlue.BaseAgent
+
+    alpha
+    lambda
+    w
+    z
+
+    observations
+    actions
+    params
+    seed
+    rng
+    rep
+    gamma
+    epsilon
+    last_interaction
+
+    function TCSarsaLambda(observations::Array, actions::Int, params::Dict, seed::Int)
+
+        @assert haskey(params, "alpha") "Missing alpha parameter"
+        @assert haskey(params, "lambda") "Missing lambda parameter"
+        @assert haskey(params, "gamma") "Missing gamma parameter"
+        @assert haskey(params, "tiles") "Missing tiles parameter"
+        @assert haskey(params, "tilings") "Missing tilings parameter"
+
+
+
+        rng = MersenneTwister(seed);
+        gamma = params["gamma"]
+        epsilon = get(params, "epsilon", 0.0)
+        rep = TC(params["tiles"], params["tilings"], observations)
+        last_interaction = nothing
+
+        # initial weights
+        w = zeros(actions, features(rep))
+        z = zeros(actions, features(rep))
+
+
+        new(params["alpha"], params["lambda"], w, z, observations, actions, params, seed, rng, rep, gamma, epsilon, last_interaction)
+    end
+end
+
+
+
+
+
+##### functions #####
+
+function policy(agent::TCSarsaLambda, observation::Array)
+    q = _values(agent, observation)
+
+    if rand(agent.rng) < agent.epsilon
+        a = rand(agent.rng, 1:agent.actions)
+    else
+        a = argmax(q) # TODO: random tie breaking
+    end
+    return a
+end
+
+function _values(agent::TCSarsaLambda, x::Array)
+    return dropdims(sum(agent.w[:, x], dims=2), dims=2)
+end
+
+function update(agent::TCSarsaLambda, x, r)
+    q = _values(agent, agent.last_interaction.o)
+    a = agent.last_interaction.a
+
+    if x === nothing    # terminal state
+        δ = r - q[a]    # TD error
+        @. agent.w += (agent.alpha / agent.rep.tilings) * δ * agent.z # weight update
+
+    else
+        q′ = _values(agent, x)
+        a′ = policy(agent, x)
+        
+        δ = r + agent.gamma * q′[a′] - q[a] # TD error
+
+        @. agent.w += (agent.alpha / agent.rep.tilings) * δ * agent.z # weight update
+        @. agent.z *= agent.gamma * agent.lambda    # trace update
+        @. agent.z[a′, x] .+= 1.0   # trace update
+    end
+end
+
+function cleanup(agent::TCSarsaLambda)
+    agent.rep = nothing
+    return nothing
+end
+
+
+##### RLGlue interface #####
+
+function RLGlue.start!(agent::TCSarsaLambda, observation::Any)
+    x = encode(agent.rep, observation)
+    a = policy(agent, x) 
+    agent.last_interaction = RLGlue.Interaction(x, a, false, 0, Dict())
+    return a
+end
+
+function RLGlue.step!(agent::TCSarsaLambda, reward::Float64, observation::Any, extra::Dict{String, Any})
+    x = encode(agent.rep, observation)
+
+    update(agent, x, reward)
+    
+    a = policy(agent, x)
+    agent.last_interaction = RLGlue.Interaction(x, a, false, reward, Dict())
+    return a
+end
+
+function RLGlue.end!(agent::TCSarsaLambda, reward::Float64, extra::Dict{String, Any})
+    update(agent, nothing, reward)
+    cleanup(agent)
+    return nothing
+end

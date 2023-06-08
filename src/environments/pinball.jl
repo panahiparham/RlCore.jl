@@ -9,7 +9,8 @@ include("pinball_custom.jl")
 """
 mutable struct Pinball <: RLGlue.BaseEnvironment
     mdp::DecisionMakingEnvironments.SequentialProblem
-    actions::Vector{Int}
+    observations::Array
+    actions::Int
     s::Tuple{Float64, Vector{Float64}}
 
     function Pinball(env_name, random_start, random_goal, start_location, goal_location, initiation_radius)
@@ -24,9 +25,11 @@ mutable struct Pinball <: RLGlue.BaseEnvironment
             mdp, _ = custom_pinball(env_name*".cfg", 2.0; fixed_start = start_location, maxT = 10_000, subgoal_locs = [goal_location])
         end
 
-        actions = Vector(1:length(mdp.A))
+        observations = mdp.S[2]
+        actions = length(mdp.A)
+
         s = (0.0, [0.0, 0.0, 0.0, 0.0])
-        return new(mdp, actions, s)
+        return new(mdp, observations, actions, s)
     end
 end
 
@@ -40,7 +43,7 @@ function RLGlue.start!(env::Pinball)
 end
 
 function RLGlue.step!(env::Pinball, action::Int)
-    @assert action in env.actions "Invalid action: $action"
+    @assert action in 1:env.actions "Invalid action: $action"
 
     env.s, o, r, γ = sample(env.mdp, env.s, action)
     if γ == 0.0
