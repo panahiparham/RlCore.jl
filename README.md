@@ -14,4 +14,4 @@ Reinforcement Learning experimentation pipeline in Julia.
 
 - Examples are avaliable in `experiments/example/` and `experiments/example_small`.
 
-> <em>Heavily</em> inspired by [Andy Patterson](https://andnp.github.io)'s [rl_control_template](https://github.com/andnp/rl-control-template) implemented in python.
+> <em>Heavily</em> inspired by [Andy Patterson](https://andnp.github.io)'s [rl_control_template](https://github.com/andnp/rl-control-template) implemented for python.
