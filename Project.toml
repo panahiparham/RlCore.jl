@@ -1,0 +1,4 @@
+name = "RlCore"
+uuid = "f18d6f1c-bb78-4011-af5d-ed26113173ee"
+authors = ["Parham Mohammad Panahi <panahiparham@gmail.com>"]
+version = "0.1.0"
