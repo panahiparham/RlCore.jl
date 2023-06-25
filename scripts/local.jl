@@ -3,12 +3,10 @@ using ResumableFunctions
 using Random
 using ProgressBars
 
-_BASE_PATH = "/"*joinpath(split(@__DIR__, "/")[1:end-1])
 
-include(joinpath(_BASE_PATH,"src/experiment/ExperimentModel.jl"))
-include(joinpath(_BASE_PATH,"src/utils/runner.jl"))
-
-include(joinpath(_BASE_PATH,"src/main.jl"))
+include(joinpath(@__DIR__, "..", "src/experiment/ExperimentModel.jl"))
+include(joinpath(@__DIR__, "..", "src/utils/runner.jl"))
+include(joinpath(@__DIR__, "..", "src/main.jl"))
 
 
 function parse_commandline()

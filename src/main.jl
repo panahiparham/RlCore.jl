@@ -3,7 +3,6 @@ using Statistics
 using ArgParse
 using Random
 
-using BenchmarkTools
 
 include("problems/registry.jl")
 include("agents/registry.jl")
