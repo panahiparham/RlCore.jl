@@ -2,3 +2,7 @@ name = "RlCore"
 uuid = "f18d6f1c-bb78-4011-af5d-ed26113173ee"
 authors = ["Parham Mohammad Panahi <panahiparham@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+RLGlue = "77e924a3-f048-4a62-88ac-6cbeeac5b880"
+TileCoder = "8d5eb9f0-8d58-4eab-b3ff-edfb869dbb09"
