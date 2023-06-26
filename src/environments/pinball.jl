@@ -51,6 +51,8 @@ function RLGlue.step!(env::Pinball, action::Int)
     @assert action in 1:env.actions "Invalid action: $action"
 
     env.s, o, r, γ = sample(env.mdp, env.s, action)
+    println(action, " ", o, " ", r, " ", γ)
+    sleep(1)
     if γ == 0.0
         t = true
     else

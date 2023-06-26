@@ -57,7 +57,7 @@ function main(exp_file, indices)
 
             # collect per step data
 
-            println("step: ", glue.total_steps, " in tis ep: ", glue.num_steps, " cutoff: " , exp.episode_cutoff, " state: ", interaction.o, " action: ",interaction.a , " reward: ", interaction.r, " term: ", interaction.t)
+            # println("step: ", glue.total_steps, " in tis ep: ", glue.num_steps, " cutoff: " , exp.episode_cutoff, " state: ", interaction.o, " action: ",interaction.a , " reward: ", interaction.r, " term: ", interaction.t)
 
             if interaction.t || (exp.episode_cutoff > -1 && glue.num_steps >= exp.episode_cutoff)
                 # collect episodic data: step_return, steps, episodic_return

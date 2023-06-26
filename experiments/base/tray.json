@@ -1,5 +1,5 @@
 {
-    "problem": "options/1",
+    "problem": "main",
     "agent": "TCSarsaLambda",
     "total_steps": 100000,
     "episode_cutoff": 5000,
