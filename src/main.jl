@@ -33,7 +33,7 @@ function main(exp_file, indices)
         collector = Collector(
             config = Dict(
                 "step_return" => Window(100),
-                "weight_norm" => Window(100),
+                # "weight_norm" => Window(100),
             ),
             idx = idx
         )
@@ -44,7 +44,7 @@ function main(exp_file, indices)
         # setup experiment
         problem = get_problem(exp.problem) # this needs to be modified with idx for hyper selection, why?
         env = problem.environment
-        agent = get_agent(exp.agent, env.observations, env.actions, perm, run)
+        agent = get_agent(exp.agent, env.observations, env.actions, perm, run, problem.discount_factor)
 
         glue = Glue(env, agent)
 
@@ -57,12 +57,12 @@ function main(exp_file, indices)
 
             # collect per step data
 
-            # println("step: ", glue.total_steps, " in tis ep: ", glue.num_steps, " cutoff: " , exp.episode_cutoff, " reward: ", glue.total_reward)
+            println("step: ", glue.total_steps, " in tis ep: ", glue.num_steps, " cutoff: " , exp.episode_cutoff, " state: ", interaction.o, " action: ",interaction.a , " reward: ", interaction.r, " term: ", interaction.t)
 
-            if interaction.t || (exp.episode_cutoff > -1 && glue.num_steps >= exp.episode_cutoff)    
+            if interaction.t || (exp.episode_cutoff > -1 && glue.num_steps >= exp.episode_cutoff)
                 # collect episodic data: step_return, steps, episodic_return
                 repeat!(collector, "step_return", glue.total_reward, glue.num_steps)
-                repeat!(collector, "weight_norm", norm(glue.agent.w), glue.num_steps)
+                # repeat!(collector, "weight_norm", norm(glue.agent.w), glue.num_steps)
                 # println("steps: ", glue.total_steps, " reward: ", glue.total_reward)
 
                 
@@ -78,7 +78,7 @@ function main(exp_file, indices)
 
         # force the data to always have same length
         fill_rest!(collector, "step_return", Int(glue.total_steps / 100))
-        fill_rest!(collector, "weight_norm", Int(glue.total_steps / 100))
+        # fill_rest!(collector, "weight_norm", Int(glue.total_steps / 100))
         reset!(collector)
 
 

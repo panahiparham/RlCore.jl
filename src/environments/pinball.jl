@@ -57,5 +57,8 @@ function RLGlue.step!(env::Pinball, action::Int)
         t = false
     end
 
+    # modified reward function
+    r = -1.0
+
     return (r, o, t, Dict{String, Any}())
 end

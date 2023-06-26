@@ -22,18 +22,16 @@ mutable struct TCSarsaLambda <: RLGlue.BaseAgent
     gamma
     epsilon
 
-    function TCSarsaLambda(observations::Array, actions::Int, params::Dict, seed::Int)
+    function TCSarsaLambda(observations::Array, actions::Int, params::Dict, seed::Int, gamma::Float64)
 
         @assert haskey(params, "alpha") "Missing alpha parameter"
         @assert haskey(params, "lambda") "Missing lambda parameter"
-        @assert haskey(params, "gamma") "Missing gamma parameter"
         @assert haskey(params, "tiles") "Missing tiles parameter"
         @assert haskey(params, "tilings") "Missing tilings parameter"
 
 
 
         rng = MersenneTwister(seed);
-        gamma = params["gamma"]
         epsilon = get(params, "epsilon", 0.0)
 
         tc_config = TileCoderConfig(params["tiles"], params["tilings"], length(observations); offset = "cascade", scale_output = false, input_ranges = observations, bound = "clip")
@@ -82,6 +80,7 @@ function update(agent::TCSarsaLambda, x, r)
         δ = r - q[a]    # TD error
         agent.w += ((agent.alpha / agent.params["tilings"]) * δ) .* agent.z # weight update
 
+
     else
         q′ = _values(agent, x)
         a′ = policy(agent, x)
@@ -89,6 +88,7 @@ function update(agent::TCSarsaLambda, x, r)
         δ = r + agent.gamma * q′[a′] - q[a] # TD error
 
         # maybe bug here?
+
         agent.w += ((agent.alpha / agent.params["tilings"]) * δ) .* agent.z # weight update
         agent.z .*= agent.gamma * agent.lambda    # trace decay
         agent.z[a′, x] .= 1.0   # replacing trace 

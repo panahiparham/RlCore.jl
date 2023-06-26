@@ -6,7 +6,7 @@ using Plots
 using LinearAlgebra
 
 
-function custom_pinball(config::String, initiation_radius; maxT=10000, stochastic_start=false, randomize=false, num_episodes=10000000000, threshold=10000000000, subgoal_locs=[], fixed_start = nothing)
+function custom_pinball(config::String, initiation_radius; maxT=100_000_000_000, stochastic_start=false, randomize=false, num_episodes=100_000_000_000, threshold=100_000_000_000, subgoal_locs=[], fixed_start = nothing)
     X = zeros((4,2))
     X[1,:] .= [0., 1.]  # x range
 	X[2,:] .= [0., 1.]  # y range
