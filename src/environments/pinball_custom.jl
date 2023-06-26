@@ -6,7 +6,7 @@ using Plots
 using LinearAlgebra
 
 
-function custom_pinball(config::String, initiation_radius; maxT=10000, stochastic_start=false, randomize=false, num_episodes=100, threshold=9000, subgoal_locs=[], fixed_start = nothing)
+function custom_pinball(config::String, initiation_radius; maxT=10000, stochastic_start=false, randomize=false, num_episodes=10000000000, threshold=10000000000, subgoal_locs=[], fixed_start = nothing)
     X = zeros((4,2))
     X[1,:] .= [0., 1.]  # x range
 	X[2,:] .= [0., 1.]  # y range
@@ -179,8 +179,9 @@ function pick_start(target_pos, initiation_radius, target_radius, ball_radius)
     x = r * cos(θ) + target_pos[1]
     y = r * sin(θ) + target_pos[2]
 
-    x = min(max(0, x), 1)
-    y = min(max(0, y), 1)
+    if x < 0 || x > 1 || y < 0 || y > 1
+        (x, y) = pick_start(target_pos, initiation_radius, target_radius, ball_radius)
+    end
 
     return (x, y)
 end

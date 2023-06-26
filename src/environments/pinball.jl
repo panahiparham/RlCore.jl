@@ -16,16 +16,21 @@ mutable struct Pinball <: RLGlue.BaseEnvironment
     function Pinball(env_name, random_start, random_goal, start_location, goal_location, initiation_radius)
 
         if random_start && random_goal
-            mdp, _ = custom_pinball(env_name*".cfg", initiation_radius; maxT = 10_000)
+            mdp, _ = custom_pinball(env_name*".cfg", initiation_radius; maxT = 100_000_000_000)
         elseif random_start
-            mdp, _ = custom_pinball(env_name*".cfg", initiation_radius; maxT = 10_000, subgoal_locs = [goal_location])
+            mdp, _ = custom_pinball(env_name*".cfg", initiation_radius; maxT = 100_000_000_000, subgoal_locs = [goal_location])
         elseif random_goal
-            mdp, _ = custom_pinball(env_name*".cfg", 2.0; fixed_start = start_location, maxT = 10_000)
+            mdp, _ = custom_pinball(env_name*".cfg", 2.0; fixed_start = start_location, maxT = 100_000_000_000)
         else
-            mdp, _ = custom_pinball(env_name*".cfg", 2.0; fixed_start = start_location, maxT = 10_000, subgoal_locs = [goal_location])
+            mdp, _ = custom_pinball(env_name*".cfg", 2.0; fixed_start = start_location, maxT = 100_000_000_000, subgoal_locs = [goal_location])
         end
 
-        observations = mdp.S[2]
+        raw_observations = mdp.S[2]
+
+        observations::Array{Tuple{Float64, Float64}} = []
+        for i=axes(raw_observations, 1)
+            push!(observations, (raw_observations[i, 1], raw_observations[i, 2]))
+        end
         actions = length(mdp.A)
 
         s = (0.0, [0.0, 0.0, 0.0, 0.0])

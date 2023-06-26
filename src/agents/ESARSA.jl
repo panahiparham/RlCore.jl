@@ -1,7 +1,7 @@
 using RLGlue
+using TileCoder
 
-include("../representations/tc.jl")
-
+include("../utils/argmax.jl")
 
 
 mutable struct TCSarsaLambda <: RLGlue.BaseAgent
@@ -10,6 +10,8 @@ mutable struct TCSarsaLambda <: RLGlue.BaseAgent
     lambda
     w
     z
+    last_x
+    last_action
 
     observations
     actions
@@ -19,7 +21,6 @@ mutable struct TCSarsaLambda <: RLGlue.BaseAgent
     rep
     gamma
     epsilon
-    last_interaction
 
     function TCSarsaLambda(observations::Array, actions::Int, params::Dict, seed::Int)
 
@@ -34,15 +35,19 @@ mutable struct TCSarsaLambda <: RLGlue.BaseAgent
         rng = MersenneTwister(seed);
         gamma = params["gamma"]
         epsilon = get(params, "epsilon", 0.0)
-        rep = TC(params["tiles"], params["tilings"], observations)
-        last_interaction = nothing
+
+        tc_config = TileCoderConfig(params["tiles"], params["tilings"], length(observations); offset = "cascade", scale_output = false, input_ranges = observations, bound = "clip")
+        rep = TC(tc_config, rng)
 
         # initial weights
         w = zeros(actions, features(rep))
         z = zeros(actions, features(rep))
 
+        last_x = nothing
+        last_action = nothing
 
-        new(params["alpha"], params["lambda"], w, z, observations, actions, params, seed, rng, rep, gamma, epsilon, last_interaction)
+
+        new(params["alpha"], params["lambda"], w, z, last_x, last_action, observations, actions, params, seed, rng, rep, gamma, epsilon)
     end
 end
 
@@ -52,13 +57,13 @@ end
 
 ##### functions #####
 
-function policy(agent::TCSarsaLambda, observation::Array)
-    q = _values(agent, observation)
+function policy(agent::TCSarsaLambda, x::Array)
+    q = _values(agent, x)
 
     if rand(agent.rng) < agent.epsilon
         a = rand(agent.rng, 1:agent.actions)
     else
-        a = argmax(q) # TODO: random tie breaking
+        a = _argmax(q)
     end
     return a
 end
@@ -68,12 +73,14 @@ function _values(agent::TCSarsaLambda, x::Array)
 end
 
 function update(agent::TCSarsaLambda, x, r)
-    q = _values(agent, agent.last_interaction.o)
-    a = agent.last_interaction.a
+    last_x = agent.last_x
+    
+    q = _values(agent, last_x)
+    a = agent.last_action
 
     if x === nothing    # terminal state
         δ = r - q[a]    # TD error
-        @. agent.w += (agent.alpha / agent.rep.tilings) * δ * agent.z # weight update
+        agent.w += ((agent.alpha / agent.params["tilings"]) * δ) .* agent.z # weight update
 
     else
         q′ = _values(agent, x)
@@ -81,14 +88,14 @@ function update(agent::TCSarsaLambda, x, r)
         
         δ = r + agent.gamma * q′[a′] - q[a] # TD error
 
-        @. agent.w += (agent.alpha / agent.rep.tilings) * δ * agent.z # weight update
-        @. agent.z *= agent.gamma * agent.lambda    # trace update
-        @. agent.z[a′, x] .+= 1.0   # trace update
+        # maybe bug here?
+        agent.w += ((agent.alpha / agent.params["tilings"]) * δ) .* agent.z # weight update
+        agent.z .*= agent.gamma * agent.lambda    # trace decay
+        agent.z[a′, x] .= 1.0   # replacing trace 
     end
 end
 
 function cleanup(agent::TCSarsaLambda)
-    agent.rep = nothing
     return nothing
 end
 
@@ -96,19 +103,23 @@ end
 ##### RLGlue interface #####
 
 function RLGlue.start!(agent::TCSarsaLambda, observation::Any)
-    x = encode(agent.rep, observation)
+    x = get_indices(agent.rep, observation)
     a = policy(agent, x) 
-    agent.last_interaction = RLGlue.Interaction(x, a, false, 0, Dict())
+
+    agent.last_x = x
+    agent.last_action = a
     return a
 end
 
 function RLGlue.step!(agent::TCSarsaLambda, reward::Float64, observation::Any, extra::Dict{String, Any})
-    x = encode(agent.rep, observation)
+    x = get_indices(agent.rep, observation)
 
     update(agent, x, reward)
     
     a = policy(agent, x)
-    agent.last_interaction = RLGlue.Interaction(x, a, false, reward, Dict())
+
+    agent.last_x = x
+    agent.last_action = a
     return a
 end
 

@@ -17,7 +17,13 @@ mutable struct ExperimentModel
     function ExperimentModel(d, path)
         agent = d["agent"]
         problem = d["problem"]
-        desc = replace(split(path, "/")[end], ".json"=>"")
+
+        if Sys.iswindows()
+            desc = replace(split(path, "\\")[end], ".json"=>"")
+        else
+            desc = replace(split(path, "/")[end], ".json"=>"")
+        end
+
 
         episode_cutoff = get(d, "episode_cutoff", -1)
         total_steps = d["total_steps"]
@@ -173,7 +179,6 @@ function get_keys(exp::ExperimentModel)
 end
 
 function interpolate(s::String, d::Dict{String, Any})
-
     for m in eachmatch(r"{.*?}", s)
         key = m.match[2:end-1]
         value = d[key]
@@ -185,7 +190,11 @@ end
 
 
 function get_experiment_name(exp::ExperimentModel)
-    x = split(exp._path, "/")
+    if Sys.iswindows()
+        x = split(exp._path, "\\")
+    else
+        x = split(exp._path, "/")
+    end
     i = findall(x->x=="experiments", x)[1]
     return x[i+1]
 end
@@ -193,11 +202,11 @@ end
 
 function interpolate_save_path(exp::ExperimentModel, key::Union{String, Nothing} = nothing)
     key = _get_save_key(exp)
-
     d = Dict{String, Any}(
         "name" => get_experiment_name(exp),
         "agent" => exp.agent,
         "description" => exp.description
-    )
+        )
+
     return interpolate(key, d)   
 end

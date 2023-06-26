@@ -1,0 +1,14 @@
+{
+    "problem": "MountainCar",
+    "agent": "TCSarsaLambda",
+    "total_steps": 1000000,
+    "episode_cutoff": 1000,
+    "metaparameters": {
+        "alpha": 0.1,
+        "gamma": 0.99,
+        "epsilon": 0.1,
+        "lambda": 0.9,
+        "tiles": 4,
+        "tilings": 16
+    }
+}

@@ -1,4 +1,5 @@
 include("pinball_problem.jl")
+include("mountaincar_problem.jl")
 
 """
 Preset Prolems are stored in subfolders of this directory.
@@ -15,11 +16,15 @@ with random start state in a small initiation radius around a fixed goal
 PROBLEMS_DIR = "src/problems/";
 
 
-
 """
 problem_name Scheme: relative path from src/problems/ to file excluding .json extension
 """
 function get_problem(problem_name::String)
+
+    if problem_name == "MountainCar"
+        return MountainCarProblem()
+    end
+
     config_file_path = PROBLEMS_DIR * problem_name * ".json"
     @assert isfile(config_file_path) "$problem_name is not a valid problem name"
 

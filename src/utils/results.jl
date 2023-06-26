@@ -11,7 +11,6 @@ function save_collector(collector::Collector, exp::ExperimentModel)
             path = joinpath(interpolate_save_path(exp), name, string(idx))
             mkpath(path)
             t = Tables.table(values)
-            # println(t)
             CSV.write(joinpath(path, "data.csv"),  Tables.table(values), writeheader=false)
         end
     end
@@ -120,7 +119,7 @@ function pick_best_idx(_d::ResultsData, sampler::String, pereferences = "hi", su
 end
 
 
-function stderr_summatizer(data::Array)
+function std_summatizer(data::Array)
     line = mean(data)
     lo = line - std(data)
     hi = line + std(data)
@@ -128,8 +127,16 @@ function stderr_summatizer(data::Array)
     return lo, line, hi
 end
 
+function stderr_summarizer(data::Array)
+    line = mean(data)
+    lo = line - std(data) / sqrt(size(data)[1])
+    hi = line + std(data) / sqrt(size(data)[1])
+        
+    return lo, line, hi
+end
 
-function get_learning_curve(_d::ResultsData, sampler::String, idx::Int, summarizer = stderr_summatizer)
+
+function get_learning_curve(_d::ResultsData, sampler::String, idx::Int, summarizer = stderr_summarizer)
     # This function returns a tuple of (lo, line, hi) for plotting learning curves
     # each of lo, line, hi are of shape (num_steps,)
     # the shaded region is computed via applying the summarizer to the runs at each step
